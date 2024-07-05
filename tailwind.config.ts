@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       colors: {
         // Theme Colors
-        homebg: '#121212', //Bg
+         
         bannertext: '#4D194D',
         btnpurple: '#312244', //BTN Purple
         btngreen: '#144552', // BTN Green

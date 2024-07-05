@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
+import confetti from 'canvas-confetti';
 
 type Props = {
   names: string[];
@@ -13,13 +14,8 @@ const SpinWheel: React.FC<Props> = ({ names, setNames }) => {
   const wheelRef = useRef<SVGSVGElement | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
 
-  const getRandomColor = () => {
-    const color1 = [49, 34, 68];
-    const color2 = [20, 69, 82];
-    const randomColor = color1.map(
-      (val, index) => val + Math.floor(Math.random() * (color2[index] - val))
-    );
-    return `rgb(${randomColor[0]}, ${randomColor[1]}, ${randomColor[2]})`;
+  const getColor = (index: number) => {
+    return index % 2 === 0 ? 'orange' : 'white';
   };
 
   useEffect(() => {
@@ -48,8 +44,8 @@ const SpinWheel: React.FC<Props> = ({ names, setNames }) => {
           50 + radius * Math.sin(angle + sliceAngle)
         },${50 - radius * Math.cos(angle + sliceAngle)} Z`
       );
-      slice.setAttribute('fill', getRandomColor());
-      slice.setAttribute('stroke', 'white');
+      slice.setAttribute('fill', getColor(index));
+      slice.setAttribute('stroke', 'black');
       slice.setAttribute('stroke-width', '0.5');
       svg.appendChild(slice);
 
@@ -65,7 +61,7 @@ const SpinWheel: React.FC<Props> = ({ names, setNames }) => {
       text.setAttribute('y', `${textY}`);
       text.setAttribute('text-anchor', 'middle');
       text.setAttribute('alignment-baseline', 'middle');
-      text.setAttribute('fill', 'white');
+      text.setAttribute('fill', index % 2 === 0 ? 'white' : 'black');
       text.setAttribute('font-size', '3');
       text.setAttribute('transform', `rotate(90, ${textX}, ${textY})`);
       text.textContent = name;
@@ -77,25 +73,30 @@ const SpinWheel: React.FC<Props> = ({ names, setNames }) => {
     if (!wheelRef.current || names.length < 2) return;
 
     setIsSpinning(true);
-    wheelRef.current.style.transform = `rotate(0deg)`;
 
-    const degree = Math.random() * 360 + 1440;
-    wheelRef.current.style.transition = 'transform 1.5s ease-out';
-    wheelRef.current.style.transform = `rotate(${degree}deg)`;
+    const degree = Math.random() * 360 + 1440; // Calculate the random degree
+    wheelRef.current.style.transition = 'transform 1.5s ease-out'; 
+    wheelRef.current.style.transform = `rotateZ(-${degree}deg)`; // Rotate anticlockwise
 
     setTimeout(() => {
       if (!wheelRef.current) return;
       const adjustedAngle = degree % 360;
       const sliceAngle = 360 / names.length;
-      const index = Math.floor((360 - adjustedAngle) / sliceAngle);
-      //   alert(names[index]);
+      const index = Math.floor((adjustedAngle) / sliceAngle); // Calculate the winning index
 
       setSelectedName(names[index]);
-      setOpen(true); // Modal'ı aç
+      setOpen(true); // Open the modal
 
       wheelRef.current.style.transition = 'none';
-      wheelRef.current.style.transform = `rotate(${adjustedAngle}deg)`;
+      wheelRef.current.style.transform = `rotateZ(-${adjustedAngle}deg)`;
       setIsSpinning(false);
+
+      // Trigger confetti celebration
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
     }, 1500);
   };
 
@@ -119,6 +120,7 @@ const SpinWheel: React.FC<Props> = ({ names, setNames }) => {
             width: '80%',
             height: '80%',
             margin: 'auto',
+            transformStyle: 'preserve-3d',
           }}
         ></svg>
         <div
